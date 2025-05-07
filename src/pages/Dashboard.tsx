@@ -33,7 +33,6 @@ const Dashboard = () => {
   const [newWalletChain, setNewWalletChain] = useState('COREUM');
   const [newWalletLabel, setNewWalletLabel] = useState('');
   const [loading, setLoading] = useState(true);
-  const [balanceLoading, setBalanceLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Supported blockchains
@@ -170,13 +169,6 @@ const Dashboard = () => {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value);
   };
 
   return (

@@ -14,13 +14,13 @@ if (!supabaseUrl || !supabaseServiceRoleKey) {
   process.exit(1);
 }
 
-// Initialize Supabase client
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-});
+// Initialize Supabase client - not used in this script, using direct database connection instead
+// const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+//   auth: {
+//     autoRefreshToken: false,
+//     persistSession: false
+//   }
+// });
 
 // PostgreSQL connection
 const pool = new Pool({

@@ -10,7 +10,7 @@ interface XRPResponse {
   status: string;
 }
 
-type MockFunction = () => Promise<any>;
+type MockFunction = (address: string) => any;
 
 const makeXRPRequest = async (
   method: string,
@@ -19,7 +19,7 @@ const makeXRPRequest = async (
   mockFn?: MockFunction
 ): Promise<XRPResponse> => {
   if (config.features.useMocks && mockFn) {
-    return mockFn();
+    return mockFn(address);
   }
 
   const response = await fetch(config.api.xrp.baseUrl, {
@@ -45,11 +45,13 @@ const USE_FALLBACK_MOCKS = config.features.useMocks;
 const XRP_API_URL = config.api.xrp.baseUrl;
 const XRP_TOKEN_DATA_URL = config.api.xrp.tokenDataUrl;
 
-// Always use real API data for production and when explicitly enabled
-const USE_REAL_API = true; // Force real API use
-
 // Helper function to handle API calls with fallback to mock data
-const fetchXRPLData = async (method, params, address, mockFn) => {
+const fetchXRPLData = async (
+  method: string, 
+  params: XRPMethodParams, 
+  address: string, 
+  mockFn: MockFunction
+): Promise<any> => {
   try {
     console.log(`XRPL DEBUG: Fetching ${method} for ${address} from ${XRP_API_URL}`);
     

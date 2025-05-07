@@ -36,10 +36,6 @@ export const getCoinPrice = async (coinId: string, currency = 'usd'): Promise<nu
   }
 };
 
-// Mock API key - in a real app, this would be in environment variables
-const API_KEY_MOCK = 'CG-VswhovxXHeF2E5nz3FXyCc24';
-const API_BASE_URL_MOCK = 'https://api.coingecko.com/api/v3';
-
 // Interface for CoinGecko prices response
 interface PriceData {
   [key: string]: {
@@ -57,7 +53,7 @@ export const getCoinPrices = async (coinIds: string[]): Promise<PriceData> => {
   try {
     // In a real implementation, you would fetch from the API:
     // const response = await fetch(
-    //   `${API_BASE_URL}/simple/price?ids=${coinIds.join(',')}&vs_currencies=usd&include_24hr_change=true&x_cg_api_key=${API_KEY}`
+    //   `${API_BASE_URL}/simple/price?ids=${coinIds.join(',')}&vs_currencies=usd&include_24hr_change=true`
     // );
     // return await response.json();
 
