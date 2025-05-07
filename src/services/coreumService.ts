@@ -1,77 +1,90 @@
-import { API_CONFIG, BLOCKCHAIN_CONFIG } from '../lib/config';
+import { config } from '../lib/config';
 
-// Get Coreum config from central configuration
-const COREUM_CONFIG = BLOCKCHAIN_CONFIG.COREUM;
-const COREUM_RPC_URL = COREUM_CONFIG.rpcUrl;
-const COREUM_REST_URL = COREUM_CONFIG.restUrl;
+interface CoreumBalance {
+  address: string;
+  balance: string;
+}
 
-// Whether to use real API or mocks
-const USE_REAL_API = API_CONFIG.useRealApi;
-const USE_FALLBACK_MOCKS = API_CONFIG.useFallbackMocks;
+interface CoreumValidator {
+  address: string;
+  details: string;
+}
 
-/**
- * Fetch account balance for a Coreum address
- * @param address Coreum wallet address
- * @returns Promise with balance data
- */
-export const getAccountBalance = async (address: string): Promise<any> => {
+interface CoreumTokenInfo {
+  symbol: string;
+  name: string;
+  decimals: number;
+}
+
+interface TransactionHistory {
+  transactions: any[];
+  pagination: {
+    next_key: string | null;
+    total: string;
+  };
+}
+
+const COREUM_REST_URL = config.api.coreum.restUrl;
+
+export const getBalance = async (address: string): Promise<CoreumBalance> => {
+  if (config.features.useMocks) {
+    return getMockBalance(address);
+  }
+
+  const response = await fetch(`${COREUM_REST_URL}/cosmos/bank/v1beta1/balances/${address}`);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Coreum balance: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return {
+    address,
+    balance: data.balances?.[0]?.amount ?? '0',
+  };
+};
+
+const getMockBalance = (address: string): CoreumBalance => {
+  return {
+    address,
+    balance: '1000000',
+  };
+};
+
+export const getTransactionHistory = async (address: string, limit = 10): Promise<TransactionHistory> => {
   try {
-    if (USE_REAL_API) {
-      // Fetch from the Coreum REST API
-      const response = await fetch(`${COREUM_REST_URL}/cosmos/bank/v1beta1/balances/${address}`);
+    if (!config.features.useMocks) {
+      const response = await fetch(
+        `${COREUM_REST_URL}/cosmos/tx/v1beta1/txs?events=message.sender='${address}'&pagination.limit=${limit}`
+      );
+      
       if (!response.ok) {
-        throw new Error(`Error fetching balance: ${response.statusText}`);
+        throw new Error(`Failed to fetch transaction history: ${response.statusText}`);
       }
-      return await response.json();
-    } else {
-      // For development/testing purposes, return mock data
-      console.log('Using mock Coreum balance data');
-      return getMockAccountBalance(address);
+      
+      return response.json();
     }
+    
+    return getMockTransactionHistory(address, limit);
   } catch (error) {
-    console.error('Error fetching Coreum account balance:', error);
-    
-    // If API call fails and fallback is enabled, use mock data
-    if (USE_FALLBACK_MOCKS) {
-      console.log('Falling back to mock data after API error');
-      return getMockAccountBalance(address);
-    }
-    
-    throw new Error('Failed to fetch Coreum account balance');
+    console.error('Error fetching transaction history:', error);
+    return getMockTransactionHistory(address, limit);
   }
 };
 
-/**
- * Fetch transaction history for a Coreum address
- * @param address Coreum wallet address
- * @param limit Number of transactions to return (default: 10)
- * @returns Promise with transaction data
- */
-export const getTransactionHistory = async (address: string, limit = 10): Promise<any> => {
-  try {
-    if (USE_REAL_API) {
-      // Fetch from the Coreum REST API
-      const response = await fetch(`${COREUM_REST_URL}/cosmos/tx/v1beta1/txs?events=message.sender='${address}'&pagination.limit=${limit}`);
-      if (!response.ok) {
-        throw new Error(`Error fetching transactions: ${response.statusText}`);
-      }
-      return await response.json();
-    } else {
-      // For development/testing purposes, return mock data
-      console.log('Using mock Coreum transaction data');
-      return getMockTransactionHistory(address, limit);
-    }
-  } catch (error) {
-    console.error('Error fetching Coreum transaction history:', error);
-    
-    // If API call fails and not in production, fall back to mock data
-    if (!USE_REAL_API || process.env.NODE_ENV !== 'production') {
-      console.log('Falling back to mock data after API error');
-      return getMockTransactionHistory(address, limit);
-    }
-    
-    throw new Error('Failed to fetch Coreum transaction history');
-  }
+const getMockTransactionHistory = (address: string, limit: number): TransactionHistory => {
+  return {
+    transactions: Array(limit).fill({
+      hash: '0x123...abc',
+      timestamp: new Date().toISOString(),
+      amount: '1000000',
+      type: 'transfer',
+    }),
+    pagination: {
+      next_key: null,
+      total: String(limit),
+    },
+  };
 };
 
 /**
@@ -109,75 +122,6 @@ export const getTokenInfo = async (denom: string): Promise<any> => {
     console.error('Error fetching Coreum token info:', error);
     throw new Error('Failed to fetch Coreum token info');
   }
-};
-
-// Keeping mock functions for fallback (in case API is down)
-const getMockAccountBalance = (address: string): any => {
-  return {
-    balances: [
-      {
-        denom: 'ucore',
-        amount: '156780000' // 156.78 CORE (micro units)
-      },
-      {
-        denom: 'usdc',
-        amount: '250000000' // 250 USDC (micro units)
-      }
-    ],
-    pagination: {
-      next_key: null,
-      total: '2'
-    }
-  };
-};
-
-// Helper function to generate mock transaction history for demonstration
-const getMockTransactionHistory = (address: string, limit: number): any => {
-  const txs = [];
-  
-  for (let i = 0; i < limit; i++) {
-    txs.push({
-      hash: `${i}abc${address.substring(0, 8)}def${i}`,
-      height: '1000' + i,
-      tx: {
-        body: {
-          messages: [
-            {
-              '@type': '/cosmos.bank.v1beta1.MsgSend',
-              from_address: i % 2 === 0 ? address : 'core1randomaddress' + i,
-              to_address: i % 2 === 0 ? 'core1randomaddress' + i : address,
-              amount: [
-                {
-                  denom: 'ucore',
-                  amount: '1000000' // 1 CORE
-                }
-              ]
-            }
-          ]
-        }
-      },
-      tx_result: {
-        code: 0, // 0 means success
-        log: 'transaction executed successfully'
-      },
-      timestamp: new Date(Date.now() - i * 3600000).toISOString() // Each tx 1 hour apart
-    });
-  }
-  
-  return {
-    txs,
-    tx_responses: txs.map(tx => ({
-      txhash: tx.hash,
-      height: tx.height,
-      code: 0,
-      raw_log: 'transaction executed successfully',
-      timestamp: tx.timestamp
-    })),
-    pagination: {
-      next_key: null,
-      total: String(limit)
-    }
-  };
 };
 
 // Helper function to generate mock validators for demonstration

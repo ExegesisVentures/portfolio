@@ -1,8 +1,44 @@
-import { SUPABASE_CONFIG } from '../lib/config';
+import { config } from '../lib/config';
+
+interface CoinGeckoPrice {
+  [key: string]: {
+    [currency: string]: number;
+  };
+}
+
+const API_BASE_URL = config.api.coingecko.baseUrl;
+const API_KEY = config.api.coingecko.key;
+
+export const getCoinPrice = async (coinId: string, currency = 'usd'): Promise<number> => {
+  try {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (API_KEY) {
+      headers['x-cg-pro-api-key'] = API_KEY;
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/simple/price?ids=${coinId}&vs_currencies=${currency}`,
+      { headers }
+    );
+
+    if (!response.ok) {
+      throw new Error(`CoinGecko API request failed: ${response.statusText}`);
+    }
+
+    const data: CoinGeckoPrice = await response.json();
+    return data[coinId]?.[currency] ?? 0;
+  } catch (error) {
+    console.error('Error fetching coin price:', error);
+    return 0;
+  }
+};
 
 // Mock API key - in a real app, this would be in environment variables
-const API_KEY = 'CG-VswhovxXHeF2E5nz3FXyCc24';
-const API_BASE_URL = 'https://api.coingecko.com/api/v3';
+const API_KEY_MOCK = 'CG-VswhovxXHeF2E5nz3FXyCc24';
+const API_BASE_URL_MOCK = 'https://api.coingecko.com/api/v3';
 
 // Interface for CoinGecko prices response
 interface PriceData {

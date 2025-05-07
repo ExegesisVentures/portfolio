@@ -1,13 +1,52 @@
-import { API_CONFIG, BLOCKCHAIN_CONFIG } from '../lib/config';
+import { config } from '../lib/config';
 
-// Get XRP config from central configuration
-const XRP_CONFIG = BLOCKCHAIN_CONFIG.XRP;
-const XRP_API_URL = XRP_CONFIG.apiUrl;
-const XRP_TOKEN_DATA_URL = XRP_CONFIG.tokenDataUrl;
+interface XRPMethodParams {
+  account: string;
+  [key: string]: any;
+}
+
+interface XRPResponse {
+  result: any;
+  status: string;
+}
+
+type MockFunction = () => Promise<any>;
+
+const makeXRPRequest = async (
+  method: string,
+  params: XRPMethodParams,
+  address: string,
+  mockFn?: MockFunction
+): Promise<XRPResponse> => {
+  if (config.features.useMocks && mockFn) {
+    return mockFn();
+  }
+
+  const response = await fetch(config.api.xrp.baseUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      method,
+      params: [params],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`XRP API request failed: ${response.statusText}`);
+  }
+
+  return response.json();
+};
+
+// Use configuration from config file
+const USE_FALLBACK_MOCKS = config.features.useMocks;
+const XRP_API_URL = config.api.xrp.baseUrl;
+const XRP_TOKEN_DATA_URL = config.api.xrp.tokenDataUrl;
 
 // Always use real API data for production and when explicitly enabled
 const USE_REAL_API = true; // Force real API use
-const USE_FALLBACK_MOCKS = API_CONFIG.useFallbackMocks;
 
 // Helper function to handle API calls with fallback to mock data
 const fetchXRPLData = async (method, params, address, mockFn) => {

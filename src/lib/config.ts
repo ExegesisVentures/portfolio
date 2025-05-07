@@ -73,4 +73,60 @@ export const getBlockchainConfig = (blockchain: string) => {
     return BLOCKCHAIN_CONFIG[upperBlockchain as keyof typeof BLOCKCHAIN_CONFIG];
   }
   throw new Error(`Unsupported blockchain: ${blockchain}`);
-}; 
+};
+
+import { createClient } from '@supabase/supabase-js';
+
+// Environment variables configuration
+export const config = {
+  supabase: {
+    url: import.meta.env.VITE_SUPABASE_URL,
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  },
+  features: {
+    useMocks: import.meta.env.VITE_USE_FALLBACK_MOCKS === 'true',
+  },
+  explorers: {
+    xrp: import.meta.env.VITE_XRP_EXPLORER,
+    coreum: import.meta.env.VITE_COREUM_EXPLORER,
+  },
+  api: {
+    coingecko: {
+      key: import.meta.env.VITE_COINGECKO_API_KEY,
+      baseUrl: 'https://api.coingecko.com/api/v3',
+    },
+    xrp: {
+      baseUrl: 'https://xrplcluster.com',
+      tokenDataUrl: 'https://api.xrpscan.com/api/v1/account/',
+    },
+    coreum: {
+      rpcUrl: 'https://rest-coreum.ecostake.com',
+      restUrl: 'https://rest-coreum.ecostake.com',
+    },
+  },
+} as const;
+
+// Validate environment variables
+const validateEnv = () => {
+  const required = [
+    'VITE_SUPABASE_URL',
+    'VITE_SUPABASE_ANON_KEY',
+    'VITE_USE_FALLBACK_MOCKS',
+    'VITE_XRP_EXPLORER',
+    'VITE_COREUM_EXPLORER',
+  ];
+
+  const missing = required.filter(
+    (key) => !(key in import.meta.env) || !import.meta.env[key]
+  );
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+};
+
+// Initialize Supabase client
+export const supabase = createClient(config.supabase.url, config.supabase.anonKey);
+
+// Run validation
+validateEnv(); 
