@@ -89,14 +89,14 @@ export const getCoinDetails = async (coinId: string): Promise<any> => {
 /**
  * Get market data for multiple cryptocurrencies
  * @param coinIds Array of CoinGecko coin IDs
- * @param currency Base currency (default: 'usd')
+ * @param _ Unused parameter (default: 'usd')
  * @returns Promise with market data
  */
-export const getMarketData = async (coinIds: string[], currency = 'usd'): Promise<any[]> => {
+export const getMarketData = async (coinIds: string[], _: string = 'usd'): Promise<any[]> => {
   try {
     // In a real implementation, you would fetch from the API:
     // const response = await fetch(
-    //   `${API_BASE_URL}/coins/markets?vs_currency=${currency}&ids=${coinIds.join(',')}&order=market_cap_desc&per_page=${coinIds.length}&page=1&sparkline=false&x_cg_api_key=${API_KEY}`
+    //   `${API_BASE_URL}/coins/markets?vs_currency=${_}&ids=${coinIds.join(',')}&order=market_cap_desc&per_page=${coinIds.length}&page=1&sparkline=false&x_cg_api_key=${API_KEY}`
     // );
     // return await response.json();
 

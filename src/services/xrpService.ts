@@ -62,10 +62,6 @@ const fetchXRPLData = async (
     
     console.log('XRPL DEBUG: Request body:', JSON.stringify(requestBody));
     
-    // Use CORS-anywhere proxy for development (optional)
-    // const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-    // const apiUrl = process.env.NODE_ENV === 'development' ? `${corsProxy}${XRP_API_URL}` : XRP_API_URL;
-    
     const response = await fetch(XRP_API_URL, {
       method: 'POST',
       headers: {

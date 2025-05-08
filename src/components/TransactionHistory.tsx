@@ -58,12 +58,12 @@ const TransactionHistory = ({ blockchain, address }: TransactionHistoryProps) =>
   const fetchCoreumTransactions = async (address: string) => {
     const txResponse = await coreumService.getTransactionHistory(address, pageSize);
     
-    if (!txResponse.txs || txResponse.txs.length === 0) {
+    if (!txResponse.transactions || txResponse.transactions.length === 0) {
       setTransactions([]);
       return;
     }
     
-    const formattedTransactions = txResponse.txs.map((tx: any) => {
+    const formattedTransactions = txResponse.transactions.map((tx: any) => {
       // Extract the first message from the transaction
       const message = tx.tx.body.messages[0];
       const isOutgoing = message.from_address === address;

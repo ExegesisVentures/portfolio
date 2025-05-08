@@ -45,15 +45,29 @@ if (fs.existsSync(useWalletDataPath)) {
     `if (!balanceData || !balanceData.balance) {`
   );
   
+  // Fix all price_change_24h type issues
+  content = content.replace(
+    /const price_change_24h = .*?;/g,
+    `const price_change_24h = Number(coinId && priceData[coinId]?.usd_24h_change || 0);`
+  );
+  
   // Fix type issues with reduce and assignments
   content = content.replace(
     /const total = processedBalances\.reduce\(\(sum: number, item: CryptoBalance\) => sum \+ item\.value_usd, 0\);/g,
-    `const total = processedBalances.reduce((sum, item) => sum + (item.value_usd || 0), 0);`
+    `const total = processedBalances.reduce((sum, item) => sum + (Number(item.value_usd) || 0), 0);`
   );
   
-  // Fix type issues with price_change_24h possibly being undefined
-  content = content.replace(/price_change_24h: coinId && priceData\[coinId\]\.usd_24h_change \? priceData\[coinId\]\.usd_24h_change : 0/g, 
-    `price_change_24h: (coinId && priceData[coinId]?.usd_24h_change) || 0`);
+  // Make sure price_change_24h for XRP is a number too
+  content = content.replace(
+    /const xrp_price_change_24h = priceData\.xrp\?\.usd_24h_change \|\| 0;/,
+    `const xrp_price_change_24h = Number(priceData.xrp?.usd_24h_change || 0);`
+  );
+  
+  // Make price_change_24h always 0 for trust lines
+  content = content.replace(
+    /price_change_24h: 0/g,
+    `price_change_24h: 0`
+  );
   
   fs.writeFileSync(useWalletDataPath, content);
   console.log('✅ Fixed useWalletData.ts');

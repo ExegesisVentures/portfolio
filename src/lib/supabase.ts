@@ -4,7 +4,7 @@ import { SUPABASE_CONFIG } from './config';
 // Initialize the Supabase client
 export const supabase = createClient(
   SUPABASE_CONFIG.url,
-  SUPABASE_CONFIG.anonKey
+  SUPABASE_CONFIG.apiKey
 );
 
 // Auth helper functions

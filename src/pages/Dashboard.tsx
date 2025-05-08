@@ -28,7 +28,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [walletAddresses, setWalletAddresses] = useState<WalletAddress[]>([]);
   const [selectedWallet, setSelectedWallet] = useState<WalletAddress | null>(null);
-  const [cryptoBalances, setCryptoBalances] = useState<CryptoBalance[]>([]);
+  const [cryptoBalances] = useState<CryptoBalance[]>([]);
   const [newWalletAddress, setNewWalletAddress] = useState('');
   const [newWalletChain, setNewWalletChain] = useState('COREUM');
   const [newWalletLabel, setNewWalletLabel] = useState('');

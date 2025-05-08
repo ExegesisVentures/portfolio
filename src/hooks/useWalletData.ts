@@ -127,7 +127,7 @@ export const useWalletData = (blockchain: string, address: string): WalletData =
           const processedBalances = (dbBalances as unknown as DbWalletBalance[]).map(item => {
             const coinId = item.coreum_tokens.coingecko_id;
             const price_usd = coinId && priceData[coinId]?.usd ? priceData[coinId].usd : 0;
-            const price_change_24h = coinId && priceData[coinId]?.usd_24h_change ? priceData[coinId].usd_24h_change : 0;
+            const price_change_24h = Number(coinId && priceData[coinId]?.usd_24h_change || 0);
             
             const balance = parseFloat(item.amount) / Math.pow(10, item.coreum_tokens.decimals);
             const value_usd = balance * price_usd;
@@ -143,7 +143,7 @@ export const useWalletData = (blockchain: string, address: string): WalletData =
           });
           
           // Calculate total value
-          const total = processedBalances.reduce((sum: number, item: CryptoBalance) => sum + item.value_usd, 0);
+          const total = processedBalances.reduce((sum, item) => sum + (item.value_usd || 0), 0);
           
           setBalances(processedBalances);
           setTotalValue(total);
@@ -155,13 +155,21 @@ export const useWalletData = (blockchain: string, address: string): WalletData =
       console.log('No cached data found, fetching from blockchain...');
       
       // Get balances from Coreum
-      const accountData = await coreumService.getAccountBalance(address);
+      const balanceData = await coreumService.getBalance(address);
       
-      if (!accountData.balances || accountData.balances.length === 0) {
+      if (!balanceData || !balanceData.balance) {
         setBalances([]);
         setTotalValue(0);
         return;
       }
+      
+      // Convert the single balance to the expected format
+      const accountData = {
+        balances: [{
+          denom: 'ucore', // Default to ucore
+          amount: balanceData.balance
+        }]
+      };
       
       // Get token info from database
       const { data: tokenData } = await supabase
@@ -193,7 +201,7 @@ export const useWalletData = (blockchain: string, address: string): WalletData =
         let symbol = denom;
         let name = denom;
         let decimals = 6; // Default to 6 decimals
-        let coinId = null;
+        let coinId: string | null = null;
         
         // Get token info from our database if available
         if (tokenMap[denom]) {
@@ -227,7 +235,7 @@ export const useWalletData = (blockchain: string, address: string): WalletData =
         const tokenBalance = rawBalance / Math.pow(10, decimals);
         
         const price_usd = coinId && priceData[coinId]?.usd ? priceData[coinId].usd : 0;
-        const price_change_24h = coinId && priceData[coinId]?.usd_24h_change ? priceData[coinId].usd_24h_change : 0;
+        const price_change_24h = Number(coinId && priceData[coinId]?.usd_24h_change || 0);
         const value_usd = tokenBalance * price_usd;
         
         return {
@@ -241,7 +249,7 @@ export const useWalletData = (blockchain: string, address: string): WalletData =
       });
       
       // Calculate total value
-      const total = processedBalances.reduce((sum: number, item: CryptoBalance) => sum + item.value_usd, 0);
+      const total = processedBalances.reduce((sum, item) => sum + (item.value_usd || 0), 0);
       
       setBalances(processedBalances);
       setTotalValue(total);
