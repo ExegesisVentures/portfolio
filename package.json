@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "prebuild": "node fix-typescript-errors.js && node fix-build-issues.js",
+    "dev": "node fix-supabase-client.js && vite",
+    "prebuild": "node fix-typescript-errors.js && node fix-build-issues.js && node fix-supabase-client.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

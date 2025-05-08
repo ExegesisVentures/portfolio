@@ -75,8 +75,6 @@ export const getBlockchainConfig = (blockchain: string) => {
   throw new Error(`Unsupported blockchain: ${blockchain}`);
 };
 
-import { createClient } from '@supabase/supabase-js';
-
 // Environment variables configuration
 export const config = {
   supabase: {
@@ -124,9 +122,6 @@ const validateEnv = () => {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
 };
-
-// Initialize Supabase client
-export const supabase = createClient(config.supabase.url, config.supabase.anonKey);
 
 // Run validation
 validateEnv(); 
